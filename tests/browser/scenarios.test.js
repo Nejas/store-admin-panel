@@ -1,0 +1,55 @@
+const { Builder, By, until } = require('selenium-webdriver');
+const chrome = require('selenium-webdriver/chrome');
+const express = require('express');
+const path = require('path');
+let server, driver, base, state;
+const order = { order_id:'o1', order_number:'ORD-TEST', order_date:'2025-01-01', customer_name:'Тестовый клиент', customer_email:'test@example.com', final_amount:1200, payment_status:'pending', status:'processing', payment_method:'card', items:[{product_name:'Кроссовки',quantity:2,unit_price:600}], shipments:[] };
+const product = { product_id:'p1', sku:'TEST-SKU', name:'Кроссовки', base_price:600, is_active:true, total_stock:5, variants:[] };
+const delay = (res, data, status=200) => setTimeout(() => res.status(status).json(data), 250);
+const find = css => driver.findElement(By.css(css));
+const waitText = (css, text) => driver.wait(async () => (await find(css).getText()).includes(text), 8000);
+const nav = async name => { await (await find(`[data-tab="${name}"]`)).click(); };
+const login = async () => {
+  await driver.get(base+'/admin.html');
+  await (await find('#email')).sendKeys('test@example.com'); await (await find('#password')).sendKeys('password');
+  await (await find('#loginForm button[type=submit]')).click();
+  await driver.wait(until.elementIsVisible(await find('#adminPanel')),8000);
+};
+beforeAll(async () => {
+  const app=express(); app.use(express.json());
+  app.post('/auth/login',(req,res) => delay(res,{token:'test-token',user:{user_id:'u1',email:'test@example.com',first_name:'Тест',last_name:'Админ',user_role:'admin'}}));
+  app.get('/dashboard/stats',(req,res)=>delay(res,{orders:1,revenue:0,products:1,customers:1,lowStock:[],recentOrders:[]}));
+  app.get('/categories',(req,res)=>delay(res,{categories:[{category_id:'c1',name:'Обувь',is_active:true}]}));
+  app.get('/brands',(req,res)=>delay(res,{brands:[]}));
+  app.get('/sizes',(req,res)=>delay(res,{sizes:[{size_id:'s1',size_value:'42',is_active:true}]}));
+  app.get('/colors',(req,res)=>delay(res,{colors:[{color_id:'c1',name:'Чёрный',is_active:true}]}));
+  app.get('/orders',(req,res)=> state.failOrders ? delay(res,{error:'Ошибка загрузки'},500) : delay(res,{data:{orders:[order]}}));
+  app.get('/orders/:id',(req,res)=>delay(res,{data:order}));
+  app.put('/orders/:id',(req,res)=>{state.savedOrder=req.body;delay(res,{success:true,data:order})});
+  app.put('/orders/:id/status',(req,res)=>{state.savedStatus=req.body.status;delay(res,{success:true})});
+  app.get('/products',(req,res)=>delay(res,{products:[product]}));
+  app.get('/products/:id',(req,res)=>delay(res,{product:{...product,variants:state.variants}}));
+  app.post('/products/:id/variants',(req,res)=>{state.variants.push({variant_id:'v1',...req.body,size_value:'42',color_name:'Чёрный',is_active:true,reserved_quantity:0});delay(res,{variant:state.variants[0]},201)});
+  app.get('/shipments',(req,res)=>delay(res,{shipments:[{shipment_id:'sh1',order_number:'ORD-TEST',tracking_number:'TRACK-TEST',status:'pending',delivery_city:'Москва',delivery_street:'Тестовая'}]}));
+  app.use(express.static(path.resolve(__dirname,'../../public')));
+  await new Promise(resolve => {server=app.listen(0,'127.0.0.1',resolve)});base=`http://127.0.0.1:${server.address().port}`;
+  driver=await new Builder().forBrowser('chrome').setChromeOptions(new chrome.Options().addArguments('--headless=new','--no-sandbox','--window-size=1440,1000')).build();
+},60000);
+afterAll(async()=>{if(driver)await driver.quit();if(server)await new Promise(resolve=>server.close(resolve))});
+beforeEach(async()=>{state={variants:[],failOrders:false};await driver.get(base+'/admin.html');await driver.executeScript('localStorage.clear()');});
+test('асинхронный вход и переход к списку заказов',async()=>{await login();await nav('orders');await waitText('#ordersTableBody','ORD-TEST');expect(await (await find('#page-title')).getText()).toBe('Заказы')},20000);
+test('задержанные детали и сохранение изменений заказа',async()=>{
+ await login();await nav('orders');await waitText('#ordersTableBody','ORD-TEST');await (await find('#ordersTableBody button')).click();await waitText('#orderDetailsContent','Кроссовки');
+ await (await find('#orderDetailsContent button')).click();await driver.wait(until.elementIsVisible(await find('#editOrderModal')),5000);
+ const notes=await find('#editOrderForm [name=customer_notes]');await notes.clear();await notes.sendKeys('Проверено');await (await find('#editOrderForm button[type=submit]')).click();
+ await driver.wait(async()=>state.savedOrder?.customer_notes==='Проверено',8000);await driver.wait(until.elementIsNotVisible(await find('#editOrderModal')),8000);
+ expect(state.savedOrder.customer_notes).toBe('Проверено');
+},20000);
+test('просмотр доставки после задержанного ответа',async()=>{await login();await nav('shipments');await waitText('#shipmentsTableBody','TRACK-TEST');await (await find('#shipmentsTableBody button')).click();await waitText('#shipmentDetailsContent','Москва');expect(await (await find('#shipmentDetailsContent')).getText()).toContain('TRACK-TEST')},20000);
+test('асинхронное создание вариации товара',async()=>{await login();await nav('products');await waitText('#productsTableBody','TEST-SKU');await (await find('#productsTableBody button[onclick*="showProductVariants"]')).click();await driver.wait(until.elementIsVisible(await find('#variantsModal')),8000);await (await find('#variantsContent button')).click();await driver.wait(until.elementIsVisible(await find('#addVariantModal')),8000);await (await find('#addVariantForm [name=size_id]')).sendKeys('42');await (await find('#addVariantForm [name=color_id]')).sendKeys('Чёрный');await (await find('#addVariantForm [name=variant_sku]')).sendKeys('VAR-TEST');await (await find('#addVariantForm button[type=submit]')).click();await waitText('#variantsContent','VAR-TEST');expect(state.variants).toHaveLength(1)},20000);
+test('ошибка задержанного запроса показывается пользователю',async()=>{await login();state.failOrders=true;await nav('orders');await driver.wait(until.alertIsPresent(),8000);const alert=await driver.switchTo().alert();expect(await alert.getText()).toContain('Ошибка загрузки заказов');await alert.accept()},20000);
+test('повторная загрузка заказов после ошибки сервера',async()=>{
+ await login();state.failOrders=true;await nav('orders');await driver.wait(until.alertIsPresent(),8000);await (await driver.switchTo().alert()).accept();
+ state.failOrders=false;await nav('orders');await waitText('#ordersTableBody','ORD-TEST');
+ expect(await (await find('#ordersTableBody')).getText()).toContain('ORD-TEST');
+},20000);
