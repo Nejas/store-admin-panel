@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Admin Panel</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="loginPage" class="login-container">
+        <div class="login-box">
+            <h2>🔐 Вход в админ-панель</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="email" class="form-control" placeholder="admin@store.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Пароль</label>
+                    <input type="password" id="password" class="form-control" placeholder="Введите пароль" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Войти</button>
+                <div id="loginError" class="error-message"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="adminPanel" class="admin-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <h1>Store Admin</h1>
+                <span>Управление магазином</span>
+            </div>
+            <div class="nav-menu">
+                <div class="nav-item active" data-tab="dashboard">
+                    <i>📊</i> Дашборд
+                </div>
+                <div class="nav-item" data-tab="products">
+                    <i>🛍️</i> Товары
+                </div>
+                <div class="nav-item" data-tab="orders">
+                    <i>📦</i> Заказы
+                </div>
+                <div class="nav-item" data-tab="customers">
+                    <i>👥</i> Клиенты
+                </div>
+                <div class="nav-item" data-tab="staff">
+                    <i>👔</i> Персонал
+                </div>
+                <div class="nav-item" data-tab="shipments">
+                    <i>🚚</i> Доставки
+                </div>
+                <div class="nav-item" data-tab="categories">
+                    <i>📁</i> Категории
+                </div>
+            </div>
+            <div class="user-info">
+                <div class="user-name" id="currentUserName">Администратор</div>
+                <div class="user-role" id="currentUserRole">admin@store.com</div>
+                <button class="logout-btn" onclick="logout()">Выйти</button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <h2 id="page-title">Дашборд</h2>
+                <div class="user-management">
+                    <span id="headerUserName">Администратор</span>
+                    <span class="status status-active" id="headerUserRole">Админ</span>
+                </div>
+            </div>
+
+            <!-- Dashboard -->
+            <div id="dashboard" class="tab-content active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Всего заказов</h3>
+                        <div class="stat-number" id="totalOrders">0</div>
+                        <small>За все время</small>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Выручка</h3>
+                        <div class="stat-number" id="totalRevenue">₽0</div>
+                        <small>Общая выручка</small>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Товары</h3>
+                        <div class="stat-number" id="totalProducts">0</div>
+                        <small>Активных товаров</small>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Клиенты</h3>
+                        <div class="stat-number" id="totalCustomers">0</div>
+                        <small>Зарегистрировано</small>
+                    </div>
+                </div>
+
+                <div class="content-grid">
+                    <div class="content-section">
+                        <div class="section-header">
+                            <h3>Товары с низким остатком</h3>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Товар</th>
+                                        <th>SKU</th>
+                                        <th>Остаток</th>
+                                        <th>Статус</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lowStockTableBody">
+                                    <tr>
+                                        <td colspan="4" class="empty-state">Загрузка...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <div class="section-header">
+                            <h3>Последние заказы</h3>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>№ Заказа</th>
+                                        <th>Клиент</th>
+                                        <th>Дата</th>
+                                        <th>Сумма</th>
+                                        <th>Статус</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentOrdersTableBody">
+                                    <tr>
+                                        <td colspan="5" class="empty-state">Загрузка...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products -->
+            <div id="products" class="tab-content">
+                <div class="section-header">
+                    <h3>Управление товарами</h3>
+                    <div>
+                        <input type="text" class="search-box" placeholder="Поиск товаров..." id="productSearch">
+                        <button class="btn btn-primary" onclick="showModal('addProductModal')">+ Добавить товар</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Изображение</th>
+                                <th>SKU</th>
+                                <th>Название</th>
+                                <th>Категория</th>
+                                <th>Бренд</th>
+                                <th>Цена</th>
+                                <th>Остаток</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsTableBody">
+                            <tr>
+                                <td colspan="9" class="empty-state">Загрузка товаров...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Orders -->
+            <div id="orders" class="tab-content">
+                <div class="section-header">
+                    <h3>Управление заказами</h3>
+                    <div>
+                        <select class="form-control" id="orderStatusFilter" style="width: auto; margin-right: 10px;">
+                            <option value="all">Все статусы</option>
+                            <option value="pending">Ожидает</option>
+                            <option value="processing">В обработке</option>
+                            <option value="completed">Завершен</option>
+                            <option value="delivered">Доставлен</option>
+                            <option value="cancelled">Отменен</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>№ Заказа</th>
+                                <th>Клиент</th>
+                                <th>Дата</th>
+                                <th>Сумма</th>
+                                <th>Оплата</th>
+                                <th>Статус</th>
+                                <th>Способ оплаты</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTableBody">
+                            <tr>
+                                <td colspan="8" class="empty-state">Загрузка заказов...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Customers -->
+            <div id="customers" class="tab-content">
+                <div class="section-header">
+                    <h3>Управление клиентами</h3>
+                    <button class="btn btn-primary" onclick="ui.showAddUserModal('customer')">+ Добавить клиента</button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ФИО</th>
+                                <th>Email</th>
+                                <th>Телефон</th>
+                                <th>Дата регистрации</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customersTableBody">
+                            <tr>
+                                <td colspan="6" class="empty-state">Загрузка клиентов...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Staff -->
+            <div id="staff" class="tab-content">
+                <div class="section-header">
+                    <h3>Управление персоналом</h3>
+                    <div>
+                        <button class="btn btn-primary" onclick="ui.showAddUserModal('manager')">+ Менеджера</button>
+                        <button class="btn btn-primary" onclick="ui.showAddUserModal('courier')">+ Курьера</button>
+                        <button class="btn btn-primary" onclick="ui.showAddUserModal('admin')">+ Администратора</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ФИО</th>
+                                <th>Email</th>
+                                <th>Должность</th>
+                                <th>Отдел</th>
+                                <th>Роль</th>
+                                <th>Дата найма</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="staffTableBody">
+                            <tr>
+                                <td colspan="8" class="empty-state">Загрузка персонала...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Shipments -->
+            <div id="shipments" class="tab-content">
+                <div class="section-header">
+                    <h3>Управление доставками</h3>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Заказ</th>
+                                <th>Трек номер</th>
+                                <th>Курьер</th>
+                                <th>Дата отправки</th>
+                                <th>Ожидаемая доставка</th>
+                                <th>Стоимость</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="shipmentsTableBody">
+                            <tr>
+                                <td colspan="8" class="empty-state">Загрузка доставок...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Categories -->
+            <div id="categories" class="tab-content">
+                <div class="section-header">
+                    <h3>Управление категориями и брендами</h3>
+                </div>
+
+                <div class="content-grid">
+                    <div class="content-section">
+                        <div class="section-header">
+                            <h4>Категории</h4>
+                            <button class="btn btn-primary btn-sm" onclick="showModal('addCategoryModal')">+ Добавить</button>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Название</th>
+                                        <th>Описание</th>
+                                        <th>Родительская категория</th>
+                                        <th>Статус</th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="categoriesTableBody">
+                                    <tr>
+                                        <td colspan="5" class="empty-state">Загрузка категорий...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="content-section">
+                        <div class="section-header">
+                            <h4>Бренды</h4>
+                            <button class="btn btn-primary btn-sm" onclick="showModal('addBrandModal')">+ Добавить</button>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Название</th>
+                                        <th>Описание</th>
+                                        <th>Сайт</th>
+                                        <th>Статус</th>
+                                        <th>Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="brandsTableBody">
+                                    <tr>
+                                        <td colspan="5" class="empty-state">Загрузка брендов...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Модальное окно добавления пользователя -->
+    <div id="addUserModal" class="modal">
+        <div class="modal-content" style="max-width: 800px; max-height: 90vh;">
+            <div class="modal-header">
+                <h3 id="userModalTitle">Добавить пользователя</h3>
+                <span class="close" onclick="ui.closeModal('addUserModal')">&times;</span>
+            </div>
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                <form id="addUserForm" onsubmit="actions.createUser(event)">
+                    <div class="form-fields-container">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Фамилия *</label>
+                                <input type="text" class="form-control" name="lastName" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Имя *</label>
+                                <input type="text" class="form-control" name="firstName" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Отчество</label>
+                            <input type="text" class="form-control" name="middleName" placeholder="Необязательно">
+                        </div>
+                        <div class="form-group">
+                            <label>Email *</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Телефон</label>
+                            <input type="tel" class="form-control" name="phone">
+                        </div>
+                        <div class="form-group">
+                            <label>Пароль *</label>
+                            <input type="password" class="form-control" name="password" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Роль *</label>
+                            <select class="form-control" name="role" id="userRoleSelect" required onchange="ui.toggleStaffFields()">
+                                <option value="customer">Клиент</option>
+                                <option value="manager">Менеджер</option>
+                                <option value="courier">Курьер</option>
+                                <option value="content">Контент-менеджер</option>
+                                <option value="admin">Администратор</option>
+                            </select>
+                        </div>
+
+                        <!-- Поля только для сотрудников -->
+                        <div id="staffFields" style="display: none;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Отдел</label>
+                                    <input type="text" class="form-control" name="department" placeholder="Например, Отдел продаж">
+                                </div>
+                                <div class="form-group">
+                                    <label>Должность</label>
+                                    <input type="text" class="form-control" name="position" placeholder="Например, Менеджер">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Дата найма</label>
+                                <input type="date" class="form-control" name="hire_date">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="ui.closeModal('addUserModal')">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Создать пользователя</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно добавления товара -->
+    <div id="addProductModal" class="modal">
+        <div class="modal-content" style="max-width: 800px; max-height: 90vh;">
+            <div class="modal-header">
+                <h3>Добавить товар</h3>
+                <span class="close" onclick="ui.closeModal('addProductModal')">&times;</span>
+            </div>
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                <form id="addProductForm" onsubmit="actions.createProduct(event)">
+                    <div class="form-fields-container">
+                        <div class="form-group">
+                            <label>SKU *</label>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <input type="text" class="form-control" name="sku" id="skuInput" required
+                                       placeholder="Уникальный код товара" style="flex: 1;">
+                            </div>
+                            <small class="form-text text-muted">Оставьте пустым для автоматической генерации</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Название товара *</label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Описание</label>
+                            <textarea class="form-control" name="description" rows="4" placeholder="Подробное описание товара..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Краткое описание</label>
+                            <textarea class="form-control" name="short_description" rows="2" placeholder="Краткое описание для карточки товара..."></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Категория *</label>
+                                <select class="form-control" name="category_id" required>
+                                    <option value="">Выберите категорию</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Бренд *</label>
+                                <select class="form-control" name="brand_id" required>
+                                    <option value="">Выберите бренд</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-section-title">📦 Вариации товара</div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Размер по умолчанию</label>
+                                <div style="display: flex; gap: 10px; align-items: flex-end;">
+                                    <select class="form-control" name="default_size_id" style="flex: 1;">
+                                        <option value="">Выберите размер</option>
+                                        <!-- Заполнится динамически -->
+                                    </select>
+                                    <button type="button" class="btn btn-secondary btn-sm" onclick="actions.showAddSizeModal()"
+                                            style="white-space: nowrap; height: 42px;">
+                                        + Новый
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Цвет по умолчанию</label>
+                                <div style="display: flex; gap: 10px; align-items: flex-end;">
+                                    <select class="form-control" name="default_color_id" style="flex: 1;">
+                                        <option value="">Выберите цвет</option>
+                                        <!-- Заполнится динамически -->
+                                    </select>
+                                    <button type="button" class="btn btn-secondary btn-sm" onclick="actions.showAddColorModal()"
+                                            style="white-space: nowrap; height: 42px;">
+                                        + Новый
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Начальный остаток</label>
+                                <input type="number" class="form-control" name="initial_stock" value="0" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Минимальный остаток</label>
+                                <input type="number" class="form-control" name="min_stock_level" value="5" min="0">
+                            </div>
+                        </div>
+                        <!-- 🔼🔼🔼 КОНЕЦ ОБНОВЛЕННОГО БЛОКА 🔼🔼🔼 -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Цена *</label>
+                                <input type="number" class="form-control" name="base_price" step="0.01" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Старая цена</label>
+                                <input type="number" class="form-control" name="old_price" step="0.01" min="0">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Пол</label>
+                                <select class="form-control" name="gender">
+                                    <option value="">Не указан</option>
+                                    <option value="male">Мужской</option>
+                                    <option value="female">Женский</option>
+                                    <option value="unisex">Унисекс</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Сезон</label>
+                                <select class="form-control" name="season">
+                                    <option value="">Не указан</option>
+                                    <option value="winter">Зима</option>
+                                    <option value="spring">Весна</option>
+                                    <option value="summer">Лето</option>
+                                    <option value="autumn">Осень</option>
+                                    <option value="all">Всесезонный</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Материал</label>
+                            <input type="text" class="form-control" name="material" placeholder="Например: Хлопок 100%">
+                        </div>
+                        <div class="form-group">
+                            <label>Инструкции по уходу</label>
+                            <textarea class="form-control" name="care_instructions" rows="2" placeholder="Рекомендации по стирке и уходу..."></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Вес (граммы)</label>
+                                <input type="number" class="form-control" name="weight_grams" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Размеры</label>
+                                <input type="text" class="form-control" name="dimensions" placeholder="Например: 30x40x10 см">
+                            </div>
+                        </div>
+                    <div class="form-group">
+                            <label>Основное изображение</label>
+                            <div class="input-with-button">
+                                <input type="url" class="form-control with-button" name="main_image_url" placeholder="https://example.com/image.jpg">
+                                <button type="button" class="url-button">Загрузить URL</button>
+                            </div>
+                            
+                            <div class="file-upload-group">
+                                <div class="file-upload-wrapper">
+                                    <input type="file" class="file-upload-input" id="main_image_file" name="main_image_file" accept=".jpg,.jpeg,.png">
+                                    <button type="button" class="file-upload-button">
+                                        <span class="upload-icon">📁</span>
+                                        Загрузить файл
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="image-preview-container">
+                                <div class="preview-placeholder">Превью изображения</div>
+                                <img src="" class="preview-image" alt="Превью">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Теги (через запятую)</label>
+                            <input type="text" class="form-control" name="tags" placeholder="новинка, популярное, распродажа">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" name="is_active" checked> Активный товар
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" name="is_featured"> Рекомендуемый товар
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="ui.closeModal('addProductModal')">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Создать товар</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Category Modal -->
+    <div id="addCategoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Добавить категорию</h3>
+                <span class="close" onclick="closeModal('addCategoryModal')">&times;</span>
+            </div>
+            <form id="addCategoryForm" onsubmit="actions.createCategory(event)">
+                <div class="form-fields-container">
+                    <div class="form-group">
+                        <label>Название категории *</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Описание</label>
+                        <textarea class="form-control" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Родительская категория</label>
+                        <select class="form-control" name="parent_id">
+                            <option value="">Без родительской категории</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>URL изображения</label>
+                        <input type="url" class="form-control" name="image_url" placeholder="https://example.com/image.jpg">
+                    </div>
+                    <div class="form-group">
+                        <label>Порядок сортировки</label>
+                        <input type="number" class="form-control" name="sort_order" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" name="is_active" checked> Активная категория
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addCategoryModal')">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Создать категорию</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Brand Modal -->
+    <div id="addBrandModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Добавить бренд</h3>
+                <span class="close" onclick="closeModal('addBrandModal')">&times;</span>
+            </div>
+            <form id="addBrandForm" onsubmit="actions.createBrand(event)">
+                <div class="form-fields-container">
+                    <div class="form-group">
+                        <label>Название бренда *</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Описание</label>
+                        <textarea class="form-control" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>URL логотипа</label>
+                        <input type="url" class="form-control" name="logo_url" placeholder="https://example.com/logo.jpg">
+                    </div>
+                    <div class="form-group">
+                        <label>Веб-сайт</label>
+                        <input type="url" class="form-control" name="website" placeholder="https://example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" name="is_active" checked> Активный бренд
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('addBrandModal')">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Создать бренд</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Модальное окно редактирования пользователя -->
+    <div id="editUserModal" class="modal">
+        <div class="modal-content" style="max-width: 800px; max-height: 90vh;">
+            <div class="modal-header">
+                <h3 id="editUserModalTitle">Редактировать пользователя</h3>
+                <span class="close" onclick="ui.closeModal('editUserModal')">&times;</span>
+            </div>
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                <form id="editUserForm" onsubmit="actions.updateUser(event)">
+                    <input type="hidden" name="userId">
+                    <div class="form-fields-container">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Фамилия *</label>
+                                <input type="text" class="form-control" name="lastName" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Имя *</label>
+                                <input type="text" class="form-control" name="firstName" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Отчество</label>
+                            <input type="text" class="form-control" name="middleName" placeholder="Необязательно">
+                        </div>
+                        <div class="form-group">
+                            <label>Email *</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Телефон</label>
+                            <input type="tel" class="form-control" name="phone">
+                        </div>
+                        <div class="form-group">
+                            <label>Роль *</label>
+                            <select class="form-control" name="role" id="editUserRoleSelect" required onchange="ui.toggleEditStaffFields()">
+                                <option value="customer">Клиент</option>
+                                <option value="manager">Менеджер</option>
+                                <option value="courier">Курьер</option>
+                                <option value="content">Контент-менеджер</option>
+                                <option value="admin">Администратор</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" name="is_active" checked> Активный пользователь
+                            </label>
+                        </div>
+
+                        <!-- Поля только для сотрудников -->
+                        <div id="editStaffFields" style="display: none;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Отдел</label>
+                                    <input type="text" class="form-control" name="department" placeholder="Например, Отдел продаж">
+                                </div>
+                                <div class="form-group">
+                                    <label>Должность</label>
+                                    <input type="text" class="form-control" name="position" placeholder="Например, Менеджер">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Дата найма</label>
+                                <input type="date" class="form-control" name="hire_date">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="ui.closeModal('editUserModal')">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно деталей заказа -->
+    <div id="orderDetailsModal" class="modal">
+        <div class="modal-content" style="max-width: 900px; max-height: 90vh;">
+            <div class="modal-header">
+                <h3>Детали заказа</h3>
+                <span class="close" onclick="ui.closeModal('orderDetailsModal')">&times;</span>
+            </div>
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                <div id="orderDetailsContent">
+                    <!-- Контент будет загружен динамически -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно редактирования заказа -->
+    <div id="editOrderModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>Редактировать заказ</h3>
+                <span class="close" onclick="ui.closeModal('editOrderModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="editOrderForm" onsubmit="actions.updateOrder(event)">
+                    <input type="hidden" name="orderId">
+                    <div class="form-fields-container">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Статус заказа</label>
+                                <select class="form-control" name="status" required>
+                                    <option value="pending">Ожидает</option>
+                                    <option value="processing">В обработке</option>
+                                    <option value="completed">Завершен</option>
+                                    <option value="delivered">Доставлен</option>
+                                    <option value="cancelled">Отменен</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group"><label>Статус оплаты</label><select class="form-control" name="payment_status"><option value="pending">Ожидает</option><option value="paid">Оплачен</option><option value="failed">Ошибка</option><option value="refunded">Возврат</option></select></div>
+                        <div class="form-group"><label>Способ оплаты</label><input class="form-control" name="payment_method"></div>
+                        <div class="form-group"><label>Примечание клиента</label><textarea class="form-control" name="customer_notes"></textarea></div>
+                        <div class="form-group"><label>Внутреннее примечание</label><textarea class="form-control" name="internal_notes"></textarea></div>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="ui.closeModal('editOrderModal')">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно заказов клиента -->
+    <div id="customerOrdersModal" class="modal">
+        <div class="modal-content" style="max-width: 800px; max-height: 90vh;">
+            <div class="modal-header">
+                <h3>Заказы клиента</h3>
+                <span class="close" onclick="ui.closeModal('customerOrdersModal')">&times;</span>
+            </div>
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                <div id="customerOrdersContent">
+                    <!-- Контент будет загружен динамически -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 🎪 МОДАЛЬНОЕ ОКНО РЕДАКТИРОВАНИЯ ТОВАРА -->
+    <div id="editProductModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>✏️ Редактировать товар</h2>
+                <span class="close" onclick="closeModal('editProductModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="editProductForm" onsubmit="actions.updateProduct(event)">
+                    <input type="hidden" name="productId">
+
+                    <div class="form-group">
+                        <label>SKU *</label>
+                        <input type="text" name="sku" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Название товара *</label>
+                        <input type="text" name="name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Описание</label>
+                        <textarea name="description" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Краткое описание</label>
+                        <input type="text" name="short_description">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Категория *</label>
+                            <select name="category_id" required>
+                                <option value="">Выберите категорию</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Бренд *</label>
+                            <select name="brand_id" required>
+                                <option value="">Выберите бренд</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-section-title">📦 Управление вариациями</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Основной размер</label>
+                            <div style="display: flex; gap: 10px; align-items: flex-end;">
+                                <select class="form-control" name="default_size_id" style="flex: 1;">
+                                    <option value="">Выберите размер</option>
+                                    <!-- Заполнится динамически -->
+                                </select>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="actions.showAddSizeModal('edit')"
+                                        style="white-space: nowrap; height: 42px;">
+                                    + Новый
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Основной цвет</label>
+                            <div style="display: flex; gap: 10px; align-items: flex-end;">
+                                <select class="form-control" name="default_color_id" style="flex: 1;">
+                                    <option value="">Выберите цвет</option>
+                                    <!-- Заполнится динамически -->
+                                </select>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="actions.showAddColorModal('edit')"
+                                        style="white-space: nowrap; height: 42px;">
+                                    + Новый
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Блок информации о существующих вариациях -->
+                    <div class="variants-info" id="variantsInfo" style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <h4 style="margin-bottom: 10px;">📋 Существующие вариации</h4>
+                        <div id="existingVariantsList">
+                            <!-- Заполнится динамически -->
+                        </div>
+                        <button type="button" class="btn btn-info btn-sm" onclick="actions.showProductVariants(currentEditingProductId)"
+                                style="margin-top: 10px;">
+                            📦 Управление всеми вариациями
+                        </button>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Базовая цена *</label>
+                            <input type="number" name="base_price" step="0.01" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Старая цена</label>
+                            <input type="number" name="old_price" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Пол</label>
+                            <select name="gender">
+                                <option value="">Не указано</option>
+                                <option value="male">Мужской</option>
+                                <option value="female">Женский</option>
+                                <option value="unisex">Унисекс</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Сезон</label>
+                            <select name="season">
+                                <option value="">Не указано</option>
+                                <option value="winter">Зима</option>
+                                <option value="spring">Весна</option>
+                                <option value="summer">Лето</option>
+                                <option value="autumn">Осень</option>
+                                <option value="all">Всесезонный</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Материал</label>
+                        <input type="text" name="material">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Инструкции по уходу</label>
+                        <textarea name="care_instructions" rows="2"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Вес (граммы)</label>
+                            <input type="number" name="weight_grams">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Габариты</label>
+                            <input type="text" name="dimensions" placeholder="10x20x30 см">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Главное изображение (URL)</label>
+                        <input type="url" name="main_image_url">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Дополнительные изображения (по одному URL на строку)</label>
+                        <textarea name="image_urls" rows="3" placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Теги (через запятую)</label>
+                        <input type="text" name="tags" placeholder="новинка, распродажа, хит">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group checkbox-group">
+                            <label>
+                                <input type="checkbox" name="is_active" checked>
+                                Активен
+                            </label>
+                        </div>
+
+                        <div class="form-group checkbox-group">
+                            <label>
+                                <input type="checkbox" name="is_featured">
+                                Рекомендуемый
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('editProductModal')">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 📁 МОДАЛЬНОЕ ОКНО РЕДАКТИРОВАНИЯ КАТЕГОРИИ -->
+    <div id="editCategoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>✏️ Редактировать категорию</h2>
+                <span class="close" onclick="closeModal('editCategoryModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="editCategoryForm" onsubmit="actions.updateCategory(event)">
+                    <input type="hidden" name="categoryId">
+
+                    <div class="form-group">
+                        <label>Название категории *</label>
+                        <input type="text" name="name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Описание</label>
+                        <textarea name="description" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Родительская категория</label>
+                        <select name="parent_id">
+                            <option value="">Без родительской категории</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Изображение (URL)</label>
+                        <input type="url" name="image_url">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Порядок сортировки</label>
+                        <input type="number" name="sort_order" value="0">
+                    </div>
+
+                    <div class="form-group checkbox-group">
+                        <label>
+                            <input type="checkbox" name="is_active" checked>
+                            Активна
+                        </label>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('editCategoryModal')">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🏷️ МОДАЛЬНОЕ ОКНО РЕДАКТИРОВАНИЯ БРЕНДА -->
+    <div id="editBrandModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>✏️ Редактировать бренд</h2>
+                <span class="close" onclick="closeModal('editBrandModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="editBrandForm" onsubmit="actions.updateBrand(event)">
+                    <input type="hidden" name="brandId">
+
+                    <div class="form-group">
+                        <label>Название бренда *</label>
+                        <input type="text" name="name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Описание</label>
+                        <textarea name="description" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Логотип (URL)</label>
+                        <input type="url" name="logo_url">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Веб-сайт</label>
+                        <input type="url" name="website">
+                    </div>
+
+                    <div class="form-group checkbox-group">
+                        <label>
+                            <input type="checkbox" name="is_active" checked>
+                            Активен
+                        </label>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('editBrandModal')">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- 📦 МОДАЛЬНОЕ ОКНО ВАРИАЦИЙ ТОВАРА -->
+    <div id="variantsModal" class="modal">
+        <div class="modal-content" style="max-width: 1000px;">
+            <div class="modal-header">
+                <h2>📦 Управление вариациями</h2>
+                <span class="close" onclick="closeModal('variantsModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="variantsContent"></div>
+            </div>
+        </div>
+    </div>
+    <!-- 🆕 МОДАЛЬНОЕ ОКНО ДОБАВЛЕНИЯ РАЗМЕРА -->
+    <div id="addSizeModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>➕ Добавить новый размер</h3>
+                <span class="close" onclick="ui.closeModal('addSizeModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="addSizeForm" onsubmit="actions.createSize(event)">
+                    <div class="form-fields-container">
+                        <div class="form-group">
+                            <label>Значение размера *</label>
+                            <input type="text" class="form-control" name="size_value" required
+                                   placeholder="Например: S, M, L, 42, 44">
+                        </div>
+                        <div class="form-group">
+                            <label>Тип размера</label>
+                            <select class="form-control" name="size_type">
+                                <option value="clothing">Одежда</option>
+                                <option value="shoes">Обувь</option>
+                                <option value="accessories">Аксессуары</option>
+                                <option value="other">Другое</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Описание</label>
+                            <input type="text" class="form-control" name="description"
+                                   placeholder="Например: Small, Medium, Large">
+                        </div>
+                        <div class="form-group">
+                            <label>Порядок сортировки</label>
+                            <input type="number" class="form-control" name="sort_order" value="0">
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="ui.closeModal('addSizeModal')">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Создать размер</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🆕 МОДАЛЬНОЕ ОКНО ДОБАВЛЕНИЯ ЦВЕТА -->
+    <div id="addColorModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>🎨 Добавить новый цвет</h3>
+                <span class="close" onclick="ui.closeModal('addColorModal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="addColorForm" onsubmit="actions.createColor(event)">
+                    <div class="form-fields-container">
+                        <div class="form-group">
+                            <label>Название цвета *</label>
+                            <input type="text" class="form-control" name="name" required
+                                   placeholder="Например: Красный, Синий, Зеленый">
+                        </div>
+                        <div class="form-group">
+                            <label>HEX код цвета</label>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <input type="color" id="colorPicker" onchange="actions.updateHexCode(this.value)"
+                                       style="width: 60px; height: 42px; border: none; border-radius: 4px;">
+                                <input type="text" class="form-control" name="hex_code" id="hexCodeInput"
+                                       placeholder="#FF0000" pattern="^#[0-9A-Fa-f]{6}$">
+                            </div>
+                            <small class="form-text text-muted">Используйте цветовой пикер или введите HEX код</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Порядок сортировки</label>
+                            <input type="number" class="form-control" name="sort_order" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" name="is_active" checked> Активный цвет
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="ui.closeModal('addColorModal')">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Создать цвет</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div id="shipmentDetailsModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header"><h3>Доставка</h3><span class="close" onclick="ui.closeModal('shipmentDetailsModal')">&times;</span></div>
+            <div class="modal-body" id="shipmentDetailsContent"></div>
+        </div>
+    </div>
+    <div id="addVariantModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header"><h3>Добавить вариацию</h3><span class="close" onclick="ui.closeModal('addVariantModal')">&times;</span></div>
+            <div class="modal-body">
+                <form id="addVariantForm" onsubmit="actions.addVariantToProduct(event)">
+                    <div class="form-group"><label>Размер</label><select class="form-control" name="size_id" required></select></div>
+                    <div class="form-group"><label>Цвет</label><select class="form-control" name="color_id" required></select></div>
+                    <div class="form-group"><label>SKU вариации</label><input class="form-control" name="variant_sku" required></div>
+                    <div class="form-group"><label>Остаток</label><input class="form-control" type="number" name="stock_quantity" value="0" min="0" required></div>
+                    <div class="form-group"><label>Минимальный остаток</label><input class="form-control" type="number" name="min_stock_level" value="5" min="0" required></div>
+                    <div class="form-group"><label>Изменение цены</label><input class="form-control" type="number" name="price_adjustment" value="0" step="0.01"></div>
+                    <div class="modal-actions"><button type="button" class="btn btn-secondary" onclick="ui.closeModal('addVariantModal')">Отмена</button><button type="submit" class="btn btn-primary">Добавить</button></div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div id="editVariantModal" class="modal"><div class="modal-content"><div class="modal-header"><h3>Изменить вариацию</h3><span class="close" onclick="ui.closeModal('editVariantModal')">&times;</span></div><div class="modal-body">
+    <form id="editVariantForm" onsubmit="actions.saveVariant(event)">
+      <label>SKU<input class="form-control" name="sku" required></label>
+      <label>Размер<select class="form-control" name="size_id" required></select></label>
+      <label>Цвет<select class="form-control" name="color_id" required></select></label>
+      <label>Изменение цены<input class="form-control" name="price_adjustment" type="number" step="0.01" required></label>
+      <label>Остаток<input class="form-control" name="stock_quantity" type="number" min="0" required></label>
+      <label>Минимальный остаток<input class="form-control" name="min_stock_level" type="number" min="0" required></label>
+      <label><input name="is_active" type="checkbox"> Активна</label>
+      <div class="modal-actions"><button type="button" class="btn btn-secondary" onclick="ui.closeModal('editVariantModal')">Отмена</button><button class="btn btn-primary" type="submit">Сохранить</button></div>
+    </form></div></div></div>
+    <script src="script.js"></script>
+</body>
+</html>

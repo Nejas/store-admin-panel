@@ -1,0 +1,2164 @@
+openapi: 3.0.3
+info:
+  title: API магазина
+  version: 1.0.0
+  description: Документация соответствует текущей реализации сервера. Данные из базы могут содержать дополнительные
+    поля.
+servers:
+- url: http://localhost:3000
+  description: Локальный сервер
+security:
+- bearerAuth: []
+paths:
+  /auth/login:
+    post:
+      tags:
+      - auth
+      summary: Вход
+      description: Без авторизации.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Auth'
+        '500':
+          description: Внутренняя ошибка сервера
+        '400':
+          description: Некорректный запрос
+  /auth/register:
+    post:
+      tags:
+      - auth
+      summary: Регистрация
+      description: Без авторизации.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Registration'
+      responses:
+        '201':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '500':
+          description: Внутренняя ошибка сервера
+        '400':
+          description: Некорректный запрос
+  /auth/register-simple:
+    post:
+      tags:
+      - auth
+      summary: Регистрация без обёртки
+      description: Без авторизации.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Registration'
+      responses:
+        '201':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Auth'
+        '500':
+          description: Внутренняя ошибка сервера
+        '400':
+          description: Некорректный запрос
+  /auth/validate-token:
+    get:
+      tags:
+      - auth
+      summary: Проверка и обновление токена
+      description: Требуется токен.
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Auth'
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+  /cart:
+    get:
+      tags:
+      - cart
+      summary: Получить корзину
+      description: Требуется токен.
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cart: &id001
+                    type: object
+                    additionalProperties: true
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+  /cart/items:
+    post:
+      tags:
+      - cart
+      summary: Добавить товар в корзину
+      description: Требуется токен.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartItem'
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cart_item: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+  /cart/items/{cart_item_id}:
+    put:
+      tags:
+      - cart
+      summary: Изменить количество
+      description: Требуется токен.
+      parameters:
+      - name: cart_item_id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Quantity'
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cart_item: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+        '404':
+          description: Объект не найден
+    delete:
+      tags:
+      - cart
+      summary: Удалить товар из корзины
+      description: Требуется токен.
+      parameters:
+      - name: cart_item_id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: &id002
+                    type: string
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+        '404':
+          description: Объект не найден
+  /cart/clear:
+    delete:
+      tags:
+      - cart
+      summary: Очистить корзину
+      description: Требуется токен.
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: *id002
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+  /cart/check-availability:
+    get:
+      tags:
+      - cart
+      summary: Проверить наличие
+      description: Требуется токен.
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  availability_check: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+  /products:
+    get:
+      tags:
+      - products
+      summary: Список товаров
+      description: Требуется токен.
+      parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      - name: search
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  products:
+                    type: array
+                    items: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+    post:
+      tags:
+      - products
+      summary: Создать товар
+      description: 'Доступ: admin или manager.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Product'
+      responses:
+        '201':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  product: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+  /products/{id}:
+    get:
+      tags:
+      - products
+      summary: Получить товар
+      description: Требуется токен.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  product: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '404':
+          description: Объект не найден
+    put:
+      tags:
+      - products
+      summary: Изменить товар
+      description: 'Доступ: admin или manager.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Product'
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  product: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+        '404':
+          description: Объект не найден
+    delete:
+      tags:
+      - products
+      summary: Удалить товар
+      description: 'Доступ: admin или manager.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: *id002
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+        '404':
+          description: Объект не найден
+  /products/{id}/stock:
+    put:
+      tags:
+      - products
+      summary: Изменить остаток
+      description: 'Доступ: admin или manager.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Stock'
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  variant: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+        '404':
+          description: Объект не найден
+  /products/{id}/variants:
+    post:
+      tags:
+      - products
+      summary: Создать вариант товара
+      description: 'Доступ: admin или manager.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Variant'
+      responses:
+        '201':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  variant: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+        '404':
+          description: Объект не найден
+  /orders:
+    get:
+      tags:
+      - orders
+      summary: Список заказов
+      description: Доступ к собственным данным; admin и manager могут обращаться к данным других пользователей.
+      parameters:
+      - name: page
+        in: query
+        schema:
+          type: integer
+      - name: limit
+        in: query
+        schema:
+          type: integer
+      - name: status
+        in: query
+        schema:
+          type: string
+      - name: user_id
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+    post:
+      tags:
+      - orders
+      summary: Создать заказ
+      description: Доступ к собственным данным; admin и manager могут обращаться к данным других пользователей.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+      responses:
+        '201':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+  /orders/{id}:
+    get:
+      tags:
+      - orders
+      summary: Получить заказ
+      description: Доступ к собственным данным; admin и manager могут обращаться к данным других пользователей.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '404':
+          description: Объект не найден
+    put:
+      tags:
+      - orders
+      summary: Изменить данные заказа
+      description: 'Доступ: admin или manager.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Успешно
+        '400':
+          description: Некорректные данные или вариант используется
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Недостаточно прав
+        '404':
+          description: Не найдено
+        '500':
+          description: Ошибка сервера
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderUpdate'
+  /orders/{id}/status:
+    put:
+      tags:
+      - orders
+      summary: Изменить статус заказа
+      description: 'Доступ: admin или manager.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Status'
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+        '404':
+          description: Объект не найден
+  /orders/{id}/status-history:
+    get:
+      tags:
+      - orders
+      summary: История статусов заказа
+      description: Доступ к собственным данным; admin и manager могут обращаться к данным других пользователей.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '404':
+          description: Объект не найден
+  /orders/customers/{id}/orders:
+    get:
+      tags:
+      - orders
+      summary: Заказы пользователя
+      description: Доступ к собственным данным; admin и manager могут обращаться к данным других пользователей.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '404':
+          description: Объект не найден
+  /users/{id}:
+    get:
+      tags:
+      - users
+      summary: Получить пользователя
+      description: Доступ к собственным данным; admin и manager могут обращаться к данным других пользователей.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '404':
+          description: Объект не найден
+    put:
+      tags:
+      - users
+      summary: Изменить пользователя
+      description: Доступ к собственным данным; admin и manager могут обращаться к данным других пользователей.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+        '404':
+          description: Объект не найден
+    delete:
+      tags:
+      - users
+      summary: Удалить пользователя
+      description: 'Доступ: admin.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: *id002
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+        '404':
+          description: Объект не найден
+  /users:
+    post:
+      tags:
+      - users
+      summary: Создать пользователя
+      description: 'Доступ: admin.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '201':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+  /users/{id}/addresses:
+    get:
+      tags:
+      - users
+      summary: Адреса пользователя
+      description: Доступ к собственным данным; admin и manager могут обращаться к данным других пользователей.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '404':
+          description: Объект не найден
+    post:
+      tags:
+      - users
+      summary: Добавить адрес
+      description: Доступ к собственным данным; admin и manager могут обращаться к данным других пользователей.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Address'
+      responses:
+        '201':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+        '404':
+          description: Объект не найден
+  /users/{id}/addresses/{addressId}:
+    put:
+      tags:
+      - users
+      summary: Изменить адрес
+      description: Доступ к собственным данным; admin и manager могут обращаться к данным других пользователей.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      - name: addressId
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Address'
+      responses:
+        '201':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+        '404':
+          description: Объект не найден
+    delete:
+      tags:
+      - users
+      summary: Удалить адрес
+      description: Доступ к собственным данным; admin и manager могут обращаться к данным других пользователей.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      - name: addressId
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: *id002
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+        '404':
+          description: Объект не найден
+  /users/{id}/orders:
+    get:
+      tags:
+      - users
+      summary: Заказы пользователя
+      description: Доступ к собственным данным; admin и manager могут обращаться к данным других пользователей.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Envelope'
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '404':
+          description: Объект не найден
+  /users/role/customers:
+    get:
+      tags:
+      - users
+      summary: Список клиентов
+      description: 'Доступ: admin или manager.'
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  customers:
+                    type: array
+                    items: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+  /users/role/staff:
+    get:
+      tags:
+      - users
+      summary: Список персонала
+      description: 'Доступ: admin или manager.'
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  staff:
+                    type: array
+                    items: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+  /shipments:
+    get:
+      tags:
+      - shipments
+      summary: Список доставок
+      description: 'Доступ: admin или manager.'
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  shipments:
+                    type: array
+                    items: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+    post:
+      tags:
+      - shipments
+      summary: Создать доставку
+      description: 'Доступ: admin или manager.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Shipment'
+      responses:
+        '201':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  shipment: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+  /shipments/{id}/status:
+    put:
+      tags:
+      - shipments
+      summary: Изменить статус доставки
+      description: 'Доступ: admin или manager.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipmentStatus'
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  shipment: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+        '404':
+          description: Объект не найден
+  /dashboard/stats:
+    get:
+      tags:
+      - dashboard
+      summary: Статистика магазина
+      description: 'Доступ: admin или manager.'
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orders: &id003
+                    type: integer
+                  revenue:
+                    type: number
+                  products: *id003
+                  customers: *id003
+                  lowStock:
+                    type: array
+                    items: *id001
+                  recentOrders:
+                    type: array
+                    items: *id001
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+  /customers:
+    get:
+      tags:
+      - customers
+      summary: Список клиентов
+      description: 'Доступ: admin или manager.'
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  customers:
+                    type: array
+                    items: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+  /staff:
+    get:
+      tags:
+      - staff
+      summary: Список персонала
+      description: 'Доступ: admin или manager.'
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  staff:
+                    type: array
+                    items: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+  /employees:
+    get:
+      tags:
+      - employees
+      summary: Список персонала
+      description: 'Доступ: admin или manager.'
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  staff:
+                    type: array
+                    items: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+  /employees/list:
+    get:
+      tags:
+      - employees
+      summary: Список сотрудников
+      description: 'Доступ: admin или manager.'
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  employees:
+                    type: array
+                    items: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+  /sizes:
+    get:
+      tags:
+      - sizes
+      summary: Список размеров
+      description: Требуется токен.
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sizes:
+                    type: array
+                    items: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+    post:
+      tags:
+      - sizes
+      summary: Создать размер
+      description: 'Доступ: admin или manager.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Size'
+      responses:
+        '201':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  size: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+  /colors:
+    get:
+      tags:
+      - colors
+      summary: Список цветов
+      description: Требуется токен.
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  colors:
+                    type: array
+                    items: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+    post:
+      tags:
+      - colors
+      summary: Создать цвет
+      description: 'Доступ: admin или manager.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Color'
+      responses:
+        '201':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  color: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+  /api/health:
+    get:
+      tags:
+      - api
+      summary: Проверка HTTP-сервера
+      description: Без авторизации.
+      security: []
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  timestamp:
+                    type: string
+                  message:
+                    type: string
+        '500':
+          description: Внутренняя ошибка сервера
+  /categories:
+    get:
+      tags:
+      - categories
+      summary: 'Список: categories'
+      description: Требуется токен.
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  categories:
+                    type: array
+                    items: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+    post:
+      tags:
+      - categories
+      summary: Создать category
+      description: 'Доступ: admin или manager.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Category'
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  category: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+  /categories/{id}:
+    get:
+      tags:
+      - categories
+      summary: Получить category
+      description: Требуется токен.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  category: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '404':
+          description: Объект не найден
+    put:
+      tags:
+      - categories
+      summary: Изменить category
+      description: 'Доступ: admin или manager.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Category'
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  category: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+        '404':
+          description: Объект не найден
+    delete:
+      tags:
+      - categories
+      summary: Удалить category
+      description: 'Доступ: admin или manager.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: *id002
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+        '404':
+          description: Объект не найден
+  /brands:
+    get:
+      tags:
+      - brands
+      summary: 'Список: brands'
+      description: Требуется токен.
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  brands:
+                    type: array
+                    items: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+    post:
+      tags:
+      - brands
+      summary: Создать brand
+      description: 'Доступ: admin или manager.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Brand'
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  brand: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+  /brands/{id}:
+    get:
+      tags:
+      - brands
+      summary: Получить brand
+      description: Требуется токен.
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  brand: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '404':
+          description: Объект не найден
+    put:
+      tags:
+      - brands
+      summary: Изменить brand
+      description: 'Доступ: admin или manager.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Brand'
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  brand: *id001
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+        '404':
+          description: Объект не найден
+    delete:
+      tags:
+      - brands
+      summary: Удалить brand
+      description: 'Доступ: admin или manager.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Идентификатор.
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: *id002
+                additionalProperties: true
+        '500':
+          description: Внутренняя ошибка сервера
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Токен недействителен или недостаточно прав
+        '400':
+          description: Некорректный запрос
+        '404':
+          description: Объект не найден
+  /products/{id}/variants/{variantId}:
+    put:
+      tags:
+      - products
+      summary: Изменить вариант товара
+      description: 'Доступ: admin или manager.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: variantId
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Успешно
+        '400':
+          description: Некорректные данные или вариант используется
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Недостаточно прав
+        '404':
+          description: Не найдено
+        '500':
+          description: Ошибка сервера
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VariantUpdate'
+    delete:
+      tags:
+      - products
+      summary: Удалить вариант товара
+      description: 'Доступ: admin или manager.'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - name: variantId
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Успешно
+        '400':
+          description: Некорректные данные или вариант используется
+        '401':
+          description: Токен отсутствует
+        '403':
+          description: Недостаточно прав
+        '404':
+          description: Не найдено
+        '500':
+          description: Ошибка сервера
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Login:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+      required:
+      - email
+      - password
+    Registration:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        middleName:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        phone:
+          type: string
+      required:
+      - firstName
+      - lastName
+      - email
+      - password
+    UserInput:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        middleName:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        phone:
+          type: string
+        role:
+          type: string
+        department:
+          type: string
+        position:
+          type: string
+        hire_date:
+          type: string
+    Address:
+      type: object
+      properties:
+        address_type:
+          type: string
+        is_default_shipping:
+          type: boolean
+        recipient_name:
+          type: string
+        recipient_phone:
+          type: string
+        country:
+          type: string
+        region:
+          type: string
+        city:
+          type: string
+        district:
+          type: string
+        postal_code:
+          type: string
+        street:
+          type: string
+        house:
+          type: string
+        building:
+          type: string
+        apartment:
+          type: string
+        entrance:
+          type: string
+        floor:
+          type: string
+        intercom:
+          type: string
+        landmark:
+          type: string
+        delivery_instructions:
+          type: string
+        is_active:
+          type: boolean
+          description: Используется при изменении адреса.
+    Product:
+      type: object
+      properties:
+        sku:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        short_description:
+          type: string
+        category_id:
+          type: integer
+        brand_id:
+          type: integer
+        base_price:
+          type: number
+        old_price:
+          type: number
+        gender:
+          type: string
+        material:
+          type: string
+        care_instructions:
+          type: string
+        season:
+          type: string
+        weight_grams:
+          type: integer
+        dimensions:
+          type: string
+        main_image_url:
+          type: string
+        tags:
+          type: string
+        is_active:
+          type: boolean
+        is_featured:
+          type: boolean
+        main_image_file:
+          type: string
+          format: binary
+          description: Изображение размером до 5 МБ.
+    Variant:
+      type: object
+      properties:
+        size_id:
+          type: integer
+        color_id:
+          type: integer
+        sku:
+          type: string
+        price_adjustment:
+          type: number
+        stock_quantity:
+          type: integer
+        min_stock_level:
+          type: integer
+        is_default:
+          type: boolean
+    Brand:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        logo_url:
+          type: string
+        website:
+          type: string
+        is_active:
+          type: boolean
+    Category:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        parent_id:
+          type: integer
+        image_url:
+          type: string
+        sort_order:
+          type: integer
+        is_active:
+          type: boolean
+    Color:
+      type: object
+      properties:
+        name:
+          type: string
+        hex_code:
+          type: string
+        sort_order:
+          type: integer
+        is_active:
+          type: boolean
+    Size:
+      type: object
+      properties:
+        size_value:
+          type: string
+        size_type:
+          type: string
+        description:
+          type: string
+        sort_order:
+          type: integer
+    CartItem:
+      type: object
+      properties:
+        product_id:
+          type: integer
+        variant_id:
+          type: integer
+        quantity:
+          type: integer
+      required:
+      - product_id
+    Quantity:
+      type: object
+      properties:
+        quantity:
+          type: integer
+      required:
+      - quantity
+    Stock:
+      type: object
+      properties:
+        stock_quantity:
+          type: integer
+    Status:
+      type: object
+      properties:
+        status:
+          type: string
+    ShipmentStatus:
+      type: object
+      properties:
+        status:
+          type: string
+        actual_delivery:
+          type: string
+    Shipment:
+      type: object
+      properties:
+        order_id:
+          type: integer
+        delivery_address_id:
+          type: integer
+        carrier:
+          type: string
+        tracking_number:
+          type: string
+        shipping_cost:
+          type: number
+        estimated_delivery:
+          type: string
+        assigned_employee_id:
+          type: integer
+    Order:
+      type: object
+      properties:
+        user_id:
+          type: integer
+        shipping_address_id:
+          type: integer
+        customer_notes:
+          type: string
+        payment_method:
+          type: string
+        shipping_amount:
+          type: number
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              product_id:
+                type: integer
+              variant_id:
+                type: integer
+              quantity:
+                type: integer
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+    Auth:
+      type: object
+      properties:
+        token: *id002
+        user: *id001
+    Envelope:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data: {}
+        message:
+          type: string
+          nullable: true
+        error:
+          type: string
+          nullable: true
+    VariantUpdate:
+      type: object
+      required:
+      - sku
+      - size_id
+      - color_id
+      - price_adjustment
+      - stock_quantity
+      - min_stock_level
+      - is_active
+      properties:
+        sku:
+          type: string
+        size_id:
+          type: integer
+        color_id:
+          type: integer
+        price_adjustment:
+          type: number
+        stock_quantity:
+          type: integer
+          minimum: 0
+        min_stock_level:
+          type: integer
+          minimum: 0
+        is_active:
+          type: boolean
+    OrderUpdate:
+      type: object
+      properties:
+        payment_status:
+          type: string
+        payment_method:
+          type: string
+        customer_notes:
+          type: string
+        internal_notes:
+          type: string
