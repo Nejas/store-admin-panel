@@ -1,0 +1,18 @@
+services:
+  database:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postman-test-only
+      POSTGRES_DB: store_postman_test
+    ports:
+      - "127.0.0.1::5432"
+    volumes:
+      - ../../schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    tmpfs:
+      - /var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d store_postman_test"]
+      interval: 2s
+      timeout: 5s
+      retries: 30

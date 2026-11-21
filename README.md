@@ -33,4 +33,4 @@ Node.js, Express, PostgreSQL, JavaScript, HTML, CSS, JWT и bcrypt.
 
 ## Тестирование
 
-Инструкции по запуску API, браузерных и интеграционных тестов приведены в [TESTING.md](TESTING.md).
+Инструкции по запуску тестов Postman, API, браузерных и интеграционных тестов приведены в [TESTING.md](TESTING.md).
